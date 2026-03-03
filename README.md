@@ -86,6 +86,14 @@ The image below illustrates the reference architecture used throughout the hacka
 - **Challenge 3**: **[Predictive Maintenance & Parts Ordering Agents with Memory](challenge-3/README.md)**: Build Predictive Maintenance and Parts Ordering agents using Microsoft Foundry's persistent memory layer to maintain context across sessions
 - **Challenge 4**: **[Multi-Agent Orchestration](challenge-4/README.md)**: Create the workflow of these 5 agents using Microsoft Agent Framework and run it in **Aspire**
 
+## What to do (quick path)
+
+1. Complete **Challenge 0** first (provision resources, generate `.env`, seed Cosmos DB).
+2. Build and run **Challenge 1** agents (anomaly classification + fault diagnosis).
+3. Implement **Challenge 2** Repair Planner in .NET using the Foundry Agents SDK guidance.
+4. Add **Challenge 3** scheduling + parts ordering agents with memory.
+5. Run **Challenge 4** end-to-end orchestration in Aspire (`aspire run`), then validate workflow output in the frontend.
+
 ## Requirements
 
 To successfully complete this hackathon, you will need the following:
