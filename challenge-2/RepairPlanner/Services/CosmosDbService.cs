@@ -35,17 +35,20 @@ public sealed class CosmosDbService
         IReadOnlyList<string> requiredSkills,
         CancellationToken ct = default)
     {
-        // Build an OR filter: ARRAY_CONTAINS(c.skills, skill1) OR ARRAY_CONTAINS(c.skills, skill2) ...
-        var conditions = requiredSkills
-            .Select(s => $"ARRAY_CONTAINS(c.skills, '{s}')")
+        // Build an OR filter using parameterized values to avoid injection
+        var paramNames = requiredSkills
+            .Select((_, i) => $"@skill{i}")
             .ToList();
 
-        var skillsFilter = conditions.Count > 0
-            ? string.Join(" OR ", conditions)
+        var skillsFilter = paramNames.Count > 0
+            ? string.Join(" OR ", paramNames.Select(p => $"ARRAY_CONTAINS(c.skills, {p})"))
             : "true";
 
         var query = new QueryDefinition(
             $"SELECT * FROM c WHERE c.availability = 'available' AND ({skillsFilter})");
+
+        for (var i = 0; i < requiredSkills.Count; i++)
+            query = query.WithParameter($"@skill{i}", requiredSkills[i]);
 
         var results = new List<Technician>();
         using var feed = _techniciansContainer.GetItemQueryIterator<Technician>(query);
@@ -70,10 +73,13 @@ public sealed class CosmosDbService
         if (partNumbers.Count == 0)
             return [];
 
-        // Build an IN-style filter using ARRAY_CONTAINS on a parameter array
-        var inList = string.Join(", ", partNumbers.Select(p => $"'{p}'"));
+        // Build a parameterized IN-style filter to avoid injection
+        var paramNames = partNumbers.Select((_, i) => $"@p{i}").ToList();
         var query = new QueryDefinition(
-            $"SELECT * FROM c WHERE c.partNumber IN ({inList})");
+            $"SELECT * FROM c WHERE c.partNumber IN ({string.Join(", ", paramNames)})");
+
+        for (var i = 0; i < partNumbers.Count; i++)
+            query = query.WithParameter($"@p{i}", partNumbers[i]);
 
         var results = new List<Part>();
         using var feed = _partsContainer.GetItemQueryIterator<Part>(query);
